@@ -28,6 +28,29 @@ const LanguageService = {
       )
       .where({ language_id })
   },
+
+  getNextWord(db, language_id, user_id) {
+    return db
+      .from('word')
+      .select(
+        'word.original as nextWord',
+        'language.total_score as totalScore',
+        'word.correct_count as wordCorrectCount',
+        'word.incorrect_count as wordIncorrectCount',
+      )
+      .join('language', 'word.language_id', '=', 'language.id')
+      .join('users', 'users.id', '=', 'language.user_id')
+      .where('users.id', user_id)
+      .andWhere('word.language_id', language_id)
+      .andWhere('word.next', 2)
+      .first()
+      .groupBy(
+        'nextWord',
+        'wordCorrectCount',
+        'wordIncorrectCount',
+        'totalScore'
+      )
+  }
 }
 
 module.exports = LanguageService

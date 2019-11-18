@@ -114,7 +114,7 @@ function cleanTables(db) {
       `TRUNCATE
         "word",
         "language",
-        "user"`
+        "users"`
       )
       .then(() =>
         Promise.all([
@@ -141,7 +141,7 @@ function seedUsers(db, users) {
     password: bcrypt.hashSync(user.password, 1)
   }))
   return db.transaction(async trx => {
-    await trx.into('user').insert(preppedUsers)
+    await trx.into('users').insert(preppedUsers)
 
     await trx.raw(
       `SELECT setval('user_id_seq', ?)`,

@@ -38,11 +38,11 @@ const LanguageService = {
         'word.correct_count as wordCorrectCount',
         'word.incorrect_count as wordIncorrectCount',
       )
-      .join('language', 'word.language_id', '=', 'language.id')
+      .join('language', 'language.id', '=', 'word.language_id')
       .join('users', 'users.id', '=', 'language.user_id')
       .where('users.id', user_id)
       .andWhere('word.language_id', language_id)
-      .andWhere('word.next', 2)
+      .whereRaw('word.id = language.head')
       .first()
       .groupBy(
         'nextWord',

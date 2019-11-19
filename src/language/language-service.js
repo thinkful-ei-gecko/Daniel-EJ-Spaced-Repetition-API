@@ -131,7 +131,7 @@ const LanguageService = {
         head: newHead,
       })
       .then(res => console.log(res))
-      .catch(error => console.log(error))
+      .catch(error => console.log(error));
   },
 
   updatePrev(db, user_id, language_id, prevNode, head_id) {

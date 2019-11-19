@@ -78,7 +78,6 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
     req.language.id,
     req.user.id
   );
-  console.log(score);
   const list = new LinkedList();
   //populate list
   words.forEach(word => list.insertLast(word));
@@ -107,7 +106,13 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
       let newNext = prevNode.next;
       let prevNodeNext = list.head;
 
-      //Call services to make updates.
+      // Call services to make updates.
+      // .then(() => {
+         LanguageService.updateHead(
+          req.app.get('db'),
+          req.language.id,
+          newHead.value.id
+      ).then(() => {
       LanguageService.updateIncorrect(
         req.app.get('db'),
         head.id,
@@ -116,15 +121,7 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
         newCount,
         newMem,
         newNext.value.id
-      )
-        .then(() => {
-          LanguageService.updateHead(
-            req.app.get('db'),
-            req.user.id,
-            req.language.id,
-            newHead.value.id
-          );
-        })
+    )})
         .then(() => {
           LanguageService.updatePrev(
             req.app.get('db'),
@@ -132,8 +129,10 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
             req.language.id,
             prevNode.id,
             head.id
-          );
-        });
+          )
+        })
+      }
+
       res.status(200).json({
         nextWord: list.head.next.value.original,
         wordCorrectCount: head.correct_count,
@@ -141,9 +140,9 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
         totalScore: score,
         answer: head.translation,
         isCorrect: false,
-      });
-    }
-
+      })
+    
+    
     if (guess !== head.translation) {
       let newCount = head.incorrect_count + 1;
       let newMem = head.memory_value * 2;

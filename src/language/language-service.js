@@ -124,16 +124,14 @@ const LanguageService = {
       });
   },
 
-  updateHead(db, language_id, user_id, newHead) {
-    return (
-      db('language')
-        .from('language')
-        .where('language.id', language_id)
-        // .where('language.user_id', user_id)
-        .update({
-          head: `${newHead}`,
-        })
-    );
+  updateHead(db, language_id, newHead) {
+    return db('language')
+      .where('language.id', language_id)
+      .update({
+        head: newHead,
+      })
+      .then(res => console.log(res))
+      .catch(error => console.log(error))
   },
 
   updatePrev(db, user_id, language_id, prevNode, head_id) {

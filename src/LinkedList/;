@@ -108,24 +108,25 @@ function main() {
   list.insertLast('5');
   list.insertLast('6');
 
-  // let before = findBefore(list, 3);
-  // console.log(before);
-  // updateHead(list);
-  // display(list);
+  moveHead(list, 3);
+  console.log(display(list));
 }
 
-// function findBefore(list, num) {
-//   let before = list.head;
+function moveHead(list, num) {
+  let moved = list.head;
+  let before = list.head;
+  let count;
+  while (count < num) {
+    before = before.next;
+  }
 
-//   for (let i = 1; i < num; i++) {
-//     before = before.next;
-//   }
-//   return before;
-// }
-
-// function updateHead(list) {
-//   list.head = list.head.next;
-// }
+  let tempNode = new _Node('test', before.next);
+  // list.head = list.head.next;
+  before.next = tempNode; //now there is a temp node between the two nodes to be changed
+  list.head = moved.next; //sets head to next in line
+  before.next = moved;
+  moved.next = tempNode.next;
+}
 
 //Make a first and last pointer
 //
@@ -143,7 +144,7 @@ function main() {
 //
 //might have something like first = head
 //
-//noide last (aka the node before where we need to insert)== end of loop
+//node last (aka the node before where we need to insert)== end of loop
 //
 //set head to 2.
 //

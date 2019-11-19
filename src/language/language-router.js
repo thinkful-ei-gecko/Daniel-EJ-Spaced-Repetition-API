@@ -66,12 +66,24 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
   }
 
   //Make a linked list to use in this endpoint
-  let words = await LanguageService.getAllWords(req.app.get('db'));
+  let words = await LanguageService.getAllWords(
+    req.app.get('db'),
+    req.language.id,
+    req.user.id
+  );
 
+  //get current total score
+  const score = await LanguageService.getScore(
+    req.app.get('db'),
+    req.language.id,
+    req.user.id
+  );
+  console.log(score);
   const list = new LinkedList();
   //populate list
   words.forEach(word => list.insertLast(word));
 
+  // res.status(200).json(list);
   //Have a linked list that "represents" the current stateof the db.
   //We need to use this linked list as a tool to iterate and find the values needed to update the head (language table) and the words.next(words table)
   //
@@ -82,34 +94,65 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
   //2. Since word/head is "moving", we will need a new next for it.
   //3. Also, since the head is moving, we need the location of the node that will come before it, so that we can set it's next as well.
 
-  //Check answer
+  //maybe rework this into a trx
+  // Check answer
   try {
     let head = list.head.value;
     if (guess !== head.translation) {
-      let newCount = head.incorrect_count + 1; //gets value for updating count
-      let newMem = 1; //resets the mem val to 1
-      let newHead = list.head.next; //gets pointer for new head
-      let prevNode = findBefore(list, newMem); //gets the previous node to point at the relocated head.
-      let newNext = prevNode.next; //the new pointer for the relocated head
-      let prevNodeNext = list.head; //set the prevNode to point at the relocated head... maybe.
-      console.log('show us new next');
-      console.log(newNext); //should not be morgen
-      console.log(prevNodeNext.value.original); //want heute
-      console.log(prevNode.value.original); //
-      //Call services to make updates.
+      let newCount = head.incorrect_count + 1;
+      head.incorrect_count = newCount;
+      let newMem = 1;
+      let newHead = list.head.next;
+      let prevNode = findBefore(list, newMem);
+      let newNext = prevNode.next;
+      let prevNodeNext = list.head;
 
-      //send response object
+      //Call services to make updates.
+      LanguageService.updateIncorrect(
+        req.app.get('db'),
+        head.id,
+        req.language.id,
+        req.user.id,
+        newCount,
+        newMem,
+        newNext.value.id
+      )
+        .then(() => {
+          LanguageService.updateHead(
+            req.app.get('db'),
+            req.user.id,
+            req.language.id,
+            newHead.value.id
+          );
+        })
+        .then(() => {
+          LanguageService.updatePrev(
+            req.app.get('db'),
+            req.user.id,
+            req.language.id,
+            prevNode.id,
+            head.id
+          );
+        });
+      res.status(200).json({
+        nextWord: list.head.next.value.original,
+        wordCorrectCount: head.correct_count,
+        wordIncorrectCount: head.incorrect_count,
+        totalScore: score,
+        answer: head.translation,
+        isCorrect: false,
+      });
     }
+
     if (guess !== head.translation) {
-      let newCount = head.incorrect_count + 1; //gets value for updating count
+      let newCount = head.incorrect_count + 1;
       let newMem = head.memory_value * 2;
-      let newHead = list.head.next; //gets pointer for new head
-      let prevNode = findBefore(list, newMem); //gets the previous node to point at the relocated head.
-      let newNext = prevNode.next; //the new pointer for the relocated head
-      let prevNodeNext = list.head; //set the prevNode to point at the relocated head... maybe.
+      let newHead = list.head.next;
+      let prevNode = findBefore(list, newMem);
+      let newNext = prevNode.next;
+      let prevNodeNext = list.head;
 
       //Call services to make updates.
-      res.status(200).json('boosh');
     } //send response object
   } catch (error) {
     next(error);

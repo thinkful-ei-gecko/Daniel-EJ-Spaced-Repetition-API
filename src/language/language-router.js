@@ -71,27 +71,57 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
   const list = new LinkedList();
   //populate list
   words.forEach(word => list.insertLast(word));
-  console.log(list);
 
-  //Have a linked list that "represents" the current state of the db.
+  //Have a linked list that "represents" the current stateof the db.
   //We need to use this linked list as a tool to iterate and find the values needed to update the head (language table) and the words.next(words table)
   //
   //Probably solid idea to check against the head in the linked list. Be sure to update in the db!
+  //
+  //We need:
+  //1. The pointer for the new head (will go in the language.head column)
+  //2. Since word/head is "moving", we will need a new next for it.
+  //3. Also, since the head is moving, we need the location of the node that will come before it, so that we can set it's next as well.
 
   //Check answer
   try {
-    console.log('inthe try');
-    const answer = await LanguageService.checkAnswer(req.app.get('db'));
+    let head = list.head.value;
+    if (guess !== head.translation) {
+      let newCount = head.incorrect_count + 1; //gets value for updating count
+      let newMem = 1; //resets the mem val to 1
+      let newHead = list.head.next; //gets pointer for new head
+      let prevNode = findBefore(list, newMem); //gets the previous node to point at the relocated head.
+      let newNext = prevNode.next; //the new pointer for the relocated head
+      let prevNodeNext = list.head; //set the prevNode to point at the relocated head... maybe.
+      console.log('show us new next');
+      console.log(newNext); //should not be morgen
+      console.log(prevNodeNext.value.original); //want heute
+      console.log(prevNode.value.original); //
+      //Call services to make updates.
 
-    //Check answer fail
-    if (guess !== answer.translation) {
-      res.status(200).json('you were wrong');
+      //send response object
     }
+    if (guess !== head.translation) {
+      let newCount = head.incorrect_count + 1; //gets value for updating count
+      let newMem = head.memory_value * 2;
+      let newHead = list.head.next; //gets pointer for new head
+      let prevNode = findBefore(list, newMem); //gets the previous node to point at the relocated head.
+      let newNext = prevNode.next; //the new pointer for the relocated head
+      let prevNodeNext = list.head; //set the prevNode to point at the relocated head... maybe.
 
-    //else
+      //Call services to make updates.
+      res.status(200).json('boosh');
+    } //send response object
   } catch (error) {
     next(error);
   }
 });
+
+function findBefore(list, num) {
+  let before = list.head;
+  for (let i = 0; i < num; i++) {
+    before = before.next;
+  }
+  return before;
+}
 
 module.exports = languageRouter;

@@ -32,7 +32,7 @@ class LinkedList {
 
   insertAt(item, pos) {
     let currNode = this.head;
-    for (let i = 2; i < pos; i++) {
+    for (let i = 0; i <= pos; i++) {
       currNode = currNode.next;
     }
     if (!currNode) {
@@ -81,7 +81,12 @@ class LinkedList {
     if (!this.head) {
       return null;
     }
-    if (this.head.value === item) {
+    console.log("THIS IS THE ITEM")
+    console.log(item)
+    console.log(this.head.value)
+    if (this.head.value.id === item.value.id) {
+      console.log('THIS IS HEAD.NEXT IN LL INSIDE IF STATEMENT')
+      console.log(this.head.next)
       this.head = this.head.next;
       return;
     }
@@ -99,20 +104,20 @@ class LinkedList {
   }
 }
 
-function main() {
-  const list = new LinkedList();
-  list.insertFirst('1');
-  list.insertLast('2');
-  list.insertLast('3');
-  list.insertLast('4');
-  list.insertLast('5');
-  list.insertLast('6');
+// function main() {
+//   const list = new LinkedList();
+//   list.insertFirst('1');
+//   list.insertLast('2');
+//   list.insertLast('3');
+//   list.insertLast('4');
+//   list.insertLast('5');
+//   list.insertLast('6');
 
   // let before = findBefore(list, 3);
   // console.log(before);
   // updateHead(list);
   // display(list);
-}
+// }
 
 // function findBefore(list, num) {
 //   let before = list.head;
@@ -149,7 +154,7 @@ function main() {
 //
 //set first.next to last.next
 //set last.next to first
-main();
+// main();
 
 // function moveHead(list, num) {
 //   let node = list.head;

@@ -43,13 +43,13 @@ languageRouter.get('/', async (req, res, next) => {
 });
 
 languageRouter.get('/head', async (req, res, next) => {
-  // implement me
   try {
     const word = await LanguageService.getNextWord(
       req.app.get('db'),
       req.language.id,
       req.user.id
     );
+
     res.json(word);
     next();
   } catch (error) {
@@ -66,130 +66,110 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
   }
 
   //Make a linked list to use in this endpoint
+  //start with the head
+  let [head] = await LanguageService.getHeadNode(
+    req.app.get('db'), 
+    req.language.head
+    );
+
   let words = await LanguageService.getAllWords(
     req.app.get('db'),
-    req.language.id,
-    req.user.id
+    req.language.id
   );
 
-  //get current total score
-  const score = await LanguageService.getScore(
-    req.app.get('db'),
-    req.language.id,
-    req.user.id
-  );
   const list = new LinkedList();
+  list.insertFirst(head)
   //populate list
-  words.forEach(word => list.insertLast(word));
+  words.forEach(word => {
+    if (word.id !== list.head.value.id) {
+      list.insertLast(word);
+    }
+  });
 
-  // res.status(200).json(list);
-  //Have a linked list that "represents" the current stateof the db.
-  //We need to use this linked list as a tool to iterate and find the values needed to update the head (language table) and the words.next(words table)
-  //
-  //Probably solid idea to check against the head in the linked list. Be sure to update in the db!
-  //
-  //We need:
-  //1. The pointer for the new head (will go in the language.head column)
-  //2. Since word/head is "moving", we will need a new next for it.
-  //3. Also, since the head is moving, we need the location of the node that will come before it, so that we can set it's next as well.
-
-  //maybe rework this into a trx
   // Check answer
   try {
-    let head = list.head.value;
-    if (guess !== head.translation) {
-      let newCount = head.incorrect_count + 1;
-      head.incorrect_count = newCount;
-      let newMem = 1;
-      let newHead = list.head.next;
-      let prevNode = findBefore(list, newMem);
-      let newNext = prevNode.next;
-      let prevNodeNext = list.head;
+    //use these for updating
+    let [llHead] = list.head.value;
+    let memVal;
+    let isCorrect;
+    let wordCountCorrect = llHead.correct_count;
+    let wordCountIncorrect = llHead.incorrect_count;
+    let score;
 
-      //First we update the head, then we go for the word and previous.
-      LanguageService.updateHead(
+    //if incorrect
+    if (guess !== llHead.translation) {
+      memVal = 1; //memval sets to one if incorrect
+      isCorrect = false; //obviously
+      wordCountIncorrect = llHead.incorrect_count + 1;
+    } else {
+      memVal = llHead.memory_value * 2; // doubles to send back in the list
+      isCorrect = true;
+      wordCountCorrect = llHead.correct_count + 1;
+    }
+
+    //Manipulate the list and iterate over it.
+console.log(JSON.stringify(list))
+
+    console.log('THIS IS BEFORE THE HEAD IS MOVED')
+    console.log(list.head)
+
+
+    let moved = llHead;
+    list.remove(list.head)
+    list.insertAt(moved, memVal);
+
+
+    console.log("THIS IS AFTER THE HEAD IS MOVED")
+    console.log(list.head)
+
+    //Trying update just the list head and the next/previous values didn't work in subsequent moves.
+
+    let [currNode] = list.head.value;
+    while (currNode.next != null) {
+      await LanguageService.updateNext(
         req.app.get('db'),
         req.language.id,
-        newHead.value.id
-      )
-        .then(() => {
-          LanguageService.updateIncorrect(
-            req.app.get('db'),
-            head.id,
-            req.language.id,
-            req.user.id,
-            newCount,
-            newMem,
-            newNext.value.id
-          );
-        })
-        .then(() => {
-          LanguageService.updatePrev(
-            req.app.get('db'),
-            req.user.id,
-            req.language.id,
-            prevNode.id,
-            head.id
-          );
-        });
+        currNode.id,
+        currNode.next
+      );
+      currNode = currNode.next
     }
+
+    // updateWord
+   
+      await LanguageService.updateWord(
+        req.app.get('db'),
+        req.language.id,
+        moved.id,
+        memVal,
+        wordCountCorrect,
+        wordCountIncorrect
+      )
+     
+
+    //update the head
+    LanguageService.updateHead(
+      req.app.get('db'),
+      req.language.id,
+      list.head.value.id
+    );
+
+    // make our response
 
     res.status(200).json({
       nextWord: list.head.next.value.original,
-      wordCorrectCount: head.correct_count,
-      wordIncorrectCount: head.incorrect_count,
-      totalScore: score,
-      answer: head.translation,
-      isCorrect: false,
+      wordCorrectCount: list.head.next.value.correct_count,
+      wordIncorrectCount: list.head.next.value.incorrect_count,
+      totalScore: 0,
+      answer: llHead.translation,
+      isCorrect: isCorrect
     });
 
-    if (guess !== head.translation) {
-      let newCount = head.incorrect_count + 1;
-      let newMem = head.memory_value * 2;
-      let newHead = list.head.next;
-      let prevNode = findBefore(list, newMem);
-      let newNext = prevNode.next;
-      let prevNodeNext = list.head;
-
-      //First we update the head, then we go for the word and previous.
-
-      LanguageService.updateHead(
-        req.app.get('db'),
-        req.language.id,
-        newHead.value.id
-      )
-        .then(() => {
-          LanguageService.updateCorrect(
-            req.app.get('db'),
-            head.id,
-            req.language.id,
-            req.user.id,
-            newCount,
-            newMem,
-            newNext.value.id
-          );
-        })
-        .then(() => {
-          LanguageService.updatePrev(
-            req.app.get('db'),
-            req.user.id,
-            req.language.id,
-            prevNode.id,
-            head.id
-          );
-        });
-    }
+   
   } catch (error) {
     next(error);
   }
 });
 
-function findBefore(list, num) {
-  let before = list.head;
-  for (let i = 0; i < num; i++) {
-    before = before.next;
-  }
-  return before;
-}
 
 module.exports = languageRouter;

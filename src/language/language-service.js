@@ -53,32 +53,18 @@ const LanguageService = {
   },
 
   //this is a test service
-  getAllWords(db, language_id, user_id) {
+  getAllWords(db, language_id) {
     return db
       .from('word')
-      .select(
-        'word.id',
-        'word.original',
-        'word.translation',
-        'word.memory_value',
-        'word.correct_count',
-        'word.incorrect_count',
-        'word.next'
-        // 'language.total_score'
-      )
-      .join('language', 'language.id', '=', 'word.language_id')
-      .where('word.language_id', language_id)
-      .andWhere('language.user_id', user_id)
-      .groupBy(
-        'word.id',
-        'word.original',
-        'word.translation',
-        'word.memory_value',
-        'word.correct_count',
-        'word.incorrect_count',
-        'word.next'
-        // 'language.total_score'
-      );
+      .select('*')
+      .where('word.id', language_id);
+  },
+
+  getHeadNode(db, head) {
+    return db
+      .select('*')
+      .from('word')
+      .where('word.id', head);
   },
 
   getScore(db, user_id, language_id) {
@@ -89,17 +75,14 @@ const LanguageService = {
       .andWhere('language.id', language_id)
       .first();
   },
-  //update the counts
-  updateCorrect(db, word_id, language_id, user_id, newCount, memVal, newNext) {
+
+  updateNext(db, language_id, word_id, nextNode) {
     return db('word')
       .join('language', 'language.id', '=', 'word.language_id')
       .where('word.language_id', language_id)
-      .andWhere('language.user_id', user_id)
       .andWhere('word.id', word_id)
       .update({
-        correct_count: newCount,
-        memory_value: memVal,
-        next: newNext,
+        next: nextNode !== null ? nextNode : null,
       });
   },
 
@@ -129,19 +112,21 @@ const LanguageService = {
       .where('language.id', language_id)
       .update({
         head: newHead,
-      })
-      .then(res => console.log(res))
-      .catch(error => console.log(error));
+      });
   },
 
-  updatePrev(db, user_id, language_id, prevNode, head_id) {
-    return db('word')
-      .join('language', 'language.id', '=', 'word.language_id')
-      .where('word.language_id', language_id)
-      .andWhere('word.id', prevNode)
-      .update({
-        next: head_id,
-      });
+  updateWord(db, language_id, word_id, memVal, wordCorrect, wordIncorrect) {
+    return (
+      db('word')
+        // .join('language', 'language.id', '=', 'word.language_id')
+        // .where('word.language_id', language_id)
+        .where('word.id', word_id)
+        .update({
+          memory_value: memVal,
+          incorrect_count: wordIncorrect,
+          correct_count: wordCorrect,
+        })
+    );
   },
 
   updateTotalScore(db, user_id, newTotal) {

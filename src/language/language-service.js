@@ -112,12 +112,14 @@ const LanguageService = {
       });
   },
 
-  updateTotalScore(db, user_id, newTotal) {
+  updateTotalScore(db, language_id, user_id, newTotal) {
     return db('language')
       .where('language.user_id', user_id)
+      .andWhere('language.id', language_id)
       .update({
         total_score: newTotal,
-      });
+      })
+      .then(res => console.log(res))
   },
 };
 

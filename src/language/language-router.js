@@ -72,8 +72,8 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
     req.language.head
   );
 
-  //The next values will but updated after the guess, so list must be ordered by next 
-  //in subsequent calls to the endpoint. 
+  //The next values will but updated after the guess, so list must be ordered by next
+  //in subsequent calls to the endpoint.
 
   const list = new LinkedList();
   list.insertFirst(head);
@@ -87,11 +87,9 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
     node = node.next;
   }
 
-
-  // Check answer against the list head 
+  // Check answer against the list head
   try {
-    
-    //These variables used for updating list and generating response 
+    //These variables used for updating list and generating response
     let llHead = list.head.value;
     let memVal;
     let isCorrect;
@@ -112,10 +110,10 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
       memVal = llHead.memory_value * 2; // doubles to send back in the list
       isCorrect = true;
       wordCountCorrect = llHead.correct_count + 1;
-      total_score = total_score + 1;
+      total_score++;
     }
 
-    //Move the linked list head 
+    //Move the linked list head
 
     let moved = llHead;
     list.removeHead();
@@ -128,13 +126,13 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
       await LanguageService.updateNext(
         req.app.get('db'),
         req.language.id,
-        currNode.value.id, 
+        currNode.value.id,
         currNode.next.value.id
       );
       currNode = currNode.next;
     }
 
-    //Update the values associated with the current word 
+    //Update the values associated with the current word
 
     await LanguageService.updateWord(
       req.app.get('db'),
@@ -145,8 +143,7 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
       wordCountIncorrect
     );
 
-
-      //Update the 'language.head' value
+    //Update the 'language.head' value
     await LanguageService.updateHead(
       req.app.get('db'),
       req.language.id,
@@ -156,16 +153,17 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
     //update the 'language.total_score'
     await LanguageService.updateTotalScore(
       req.app.get('db'),
+      req.language.id,
       req.user.id,
       total_score
     );
 
     res.status(200).json({
-      nextWord: list.head.value.original, 
+      nextWord: list.head.value.original,
       wordCorrectCount: list.head.value.correct_count,
-      wordIncorrectCount: list.head.value.incorrect_count, 
+      wordIncorrectCount: list.head.value.incorrect_count,
       totalScore: total_score,
-      answer: moved.translation, 
+      answer: moved.translation,
       isCorrect: isCorrect,
     });
   } catch (error) {

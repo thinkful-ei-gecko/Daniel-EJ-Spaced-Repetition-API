@@ -118,8 +118,7 @@ const LanguageService = {
       .andWhere('language.id', language_id)
       .update({
         total_score: newTotal,
-      })
-      .then(res => console.log(res))
+      });
   },
 };
 

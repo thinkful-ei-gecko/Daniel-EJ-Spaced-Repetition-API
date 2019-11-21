@@ -103,8 +103,8 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
 
     //If guess is correct
     if (guess !== llHead.translation) {
-      memVal = 1; //memval sets to one if incorrect
-      isCorrect = false; //obviously
+      memVal = 1; 
+      isCorrect = false; 
       wordCountIncorrect = llHead.incorrect_count + 1;
     } else {
       memVal = llHead.memory_value * 2; // doubles to send back in the list

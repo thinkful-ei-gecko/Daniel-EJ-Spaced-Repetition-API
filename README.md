@@ -1,5 +1,32 @@
 # Spaced repetition API!
 
+##Herzlich Willkommen! 
+
+Welcome to the Clever German API, the back-end for a spaced-repetition app that helps you learn Deutsch... schnell!
+
+Here you will find everything you need to get up and running, including:
+1. Migration files
+2. A seed file of 10 German words 
+3. Integration tests to assist in setting up your project
+
+##Organization
+
+The endpoints are organized by their function, and are: 
+
+1.api/language-Pertaining to all things relating to delivering the words to the user. 
+	-api/language: Gets all of the users words to learn
+	-/api/language/head: Gets the next word in line for the user
+	-/api/language/guess: Processes a users answer to the question, and updated the user's score and correct/incorrect count. 
+
+	The language endpoint makes use of a linked list to implement the spaced-repetition algorithm, and adjusts each word's place in the list based on their memory_value. If a user answers incorrectly, the memory value is reset to 1, and the word is moved back one spot in the list. If answered correctly, the word's memory value is doubled, and the word is moved back that many spaces in the list. 
+
+2.api/auth- Handles user login and manages credentials. There is one endpoint: 
+	-api/auth/token: Creates and updates bearer tokens. 
+
+3. /api/user - Handles registering and onboarding new users. Again, one endpoint:
+	-/api/user : Posts newly registered users. 
+
+
 ## Local dev setup
 
 If using user `dunder-mifflin`:

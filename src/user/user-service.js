@@ -7,14 +7,14 @@ const UserService = {
     return db('users')
       .where({ username })
       .first()
-      .then(user => !!user)
+      .then(users => !!users)
   },
   insertUser(db, newUser) {
     return db
       .insert(newUser)
       .into('users')
       .returning('*')
-      .then(([user]) => user)
+      .then(([users]) => users)
   },
   validatePassword(password) {
     if (password.length < 8) {
@@ -34,7 +34,7 @@ const UserService = {
   hashPassword(password) {
     return bcrypt.hash(password, 12)
   },
-  serializeUser(user) {
+  serializeUser(users) {
     return {
       id: users.id,
       name: users.name,

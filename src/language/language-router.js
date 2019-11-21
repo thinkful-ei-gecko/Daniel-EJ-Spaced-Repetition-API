@@ -72,130 +72,105 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
     req.language.head
   );
 
-  //THE NEXT IS ONLY UPDATED ON THE VALUE!! Get it by the next!
+  //The next values will but updated after the guess, so list must be ordered by next 
+  //in subsequent calls to the endpoint. 
+
   const list = new LinkedList();
-  list.insertFirst(head)
-  let node = list.head
-  console.log(node.value.next)
+  list.insertFirst(head);
+  let node = list.head;
   while (node.value.next !== null) {
-    console.log(node.value.next)
     let [word] = await LanguageService.getWord(
       req.app.get('db'),
       node.value.next
-    )
-    list.insertLast(word)
-    node = node.next
+    );
+    list.insertLast(word);
+    node = node.next;
   }
 
-  let words = await LanguageService.getAllWords(
-    req.app.get('db'),
-    req.language.id
-  );
 
-  // const list = new LinkedList();
-  // list.insertFirst(head);
-  // //populate list
-  // words.forEach(word => {
-  //   if (word.id !== head.id) {
-  //     list.insertLast(word);
-  //   }
-  // });
+  // Check answer against the list head 
+  try {
+    
+    //These variables used for updating list and generating response 
+    let llHead = list.head.value;
+    let memVal;
+    let isCorrect;
+    let wordCountCorrect = llHead.correct_count;
+    let wordCountIncorrect = llHead.incorrect_count;
+    let { total_score } = await LanguageService.getScore(
+      req.app.get('db'),
+      req.user.id,
+      req.language.id
+    );
 
+    //If guess is correct
+    if (guess !== llHead.translation) {
+      memVal = 1; //memval sets to one if incorrect
+      isCorrect = false; //obviously
+      wordCountIncorrect = llHead.incorrect_count + 1;
+    } else {
+      memVal = llHead.memory_value * 2; // doubles to send back in the list
+      isCorrect = true;
+      wordCountCorrect = llHead.correct_count + 1;
+      total_score = total_score + 1;
+    }
 
-  // Check answer
-  // try {
-  //use these for updating
-  let llHead = list.head.value;
-  let memVal;
-  let isCorrect;
-  let wordCountCorrect = llHead.correct_count;
-  let wordCountIncorrect = llHead.incorrect_count;
-  let { total_score } = await LanguageService.getScore(
-    req.app.get('db'),
-    req.user.id,
-    req.language.id
-  );
+    //Move the linked list head 
 
-  //if incorrect
-  if (guess !== llHead.translation) {
-    memVal = 1; //memval sets to one if incorrect
-    isCorrect = false; //obviously
-    wordCountIncorrect = llHead.incorrect_count + 1;
-  } else {
-    memVal = llHead.memory_value * 2; // doubles to send back in the list
-    isCorrect = true;
-    wordCountCorrect = llHead.correct_count + 1;
-    total_score = total_score + 1
-  }
+    let moved = llHead;
+    list.removeHead();
+    list.insertAt(moved, memVal);
 
-  //Manipulate the list and iterate over it.
+    //update the "next" value of each node in the DB
 
-   console.log("THIS IS THE LIST", JSON.stringify(list))
-  let moved = llHead;
-  list.removeHead();
-  list.insertAt(moved, memVal);
+    let currNode = list.head;
+    while (currNode.next != null) {
+      await LanguageService.updateNext(
+        req.app.get('db'),
+        req.language.id,
+        currNode.value.id, 
+        currNode.next.value.id
+      );
+      currNode = currNode.next;
+    }
 
-  console.log("THIS IS THE LIST AFTER MOVING THE HEAD", JSON.stringify(list))
+    //Update the values associated with the current word 
 
-  //At this point, the head is reassigned. The VALUE of the previous head is listed behind the new head, but the inner next is not changed, so ignore it and use the outer.
-
-  //     //Trying update just the list head and the next/previous values didn't work in subsequent moves.
-
-  let currNode = list.head;
-  while (currNode.next != null) {
-    //this is the OUTER next
-    await LanguageService.updateNext(
+    await LanguageService.updateWord(
       req.app.get('db'),
       req.language.id,
-      currNode.value.id, //this is the INNER id, the one we want.
-      currNode.next.value.id
+      moved.id,
+      memVal,
+      wordCountCorrect,
+      wordCountIncorrect
     );
-    currNode = currNode.next;
+
+
+      //Update the 'language.head' value
+    await LanguageService.updateHead(
+      req.app.get('db'),
+      req.language.id,
+      list.head.value.id //This is the inner id
+    );
+
+    //update the 'language.total_score'
+    await LanguageService.updateTotalScore(
+      req.app.get('db'),
+      req.user.id,
+      total_score
+    );
+
+    res.status(200).json({
+      nextWord: list.head.value.original, 
+      wordCorrectCount: list.head.value.correct_count,
+      wordIncorrectCount: list.head.value.incorrect_count, 
+      totalScore: total_score,
+      answer: moved.translation, 
+      isCorrect: isCorrect,
+    });
+  } catch (error) {
+    next(error);
   }
-
-  // updateWord
-
-  await LanguageService.updateWord(
-    req.app.get('db'),
-    req.language.id,
-    moved.id,
-    memVal,
-    wordCountCorrect,
-    wordCountIncorrect
-  );
-
-  //     //update the head
-  await LanguageService.updateHead(
-    req.app.get('db'),
-    req.language.id,
-    list.head.value.id //This is the inner id
-  );
-
-
-  //update the score 
-  await LanguageService.updateTotalScore(
-    req.app.get('db'),
-    req.user.id,
-    total_score
-  )
-
-
-  //     // make our response
-
-  console.log(list.head)
-
-  res.status(200).json({
-    nextWord: list.head.value.original,
-    wordCorrectCount: list.head.value.correct_count,
-    wordIncorrectCount: list.head.value.incorrect_count,
-    totalScore: total_score,
-    answer: moved.translation,
-    isCorrect: isCorrect,
-  });
-
-  // } catch (error) {
-  //   next(error);
-  // }
 });
 
 module.exports = languageRouter;

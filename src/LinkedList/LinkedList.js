@@ -32,9 +32,7 @@ class LinkedList {
 
   insertAt(item, pos) {
     let currNode = this.head;
-   //This puts the incorrectly answered node right behind the new head, provided the mvalue is 1
     for (let i = 1; i < pos; i++) {
-      // console.log('THE CURRNODE IS', currNode)
       if (currNode.next === null) {
         break;
       }
@@ -83,7 +81,6 @@ class LinkedList {
   }
 
   removeHead() {
-    let head = this.head;
     this.head = this.head.next;
   }
 
@@ -99,127 +96,11 @@ class LinkedList {
       previousNode = currNode;
       currNode = currNode.next;
     }
-    //   if (currNode === null) {
-    //     return;
-    //   }
-    //   previousNode.next = currNode.next;
-    // }
+    if (currNode === null) {
+      return;
+    }
+    previousNode.next = currNode.next;
   }
-
-  // function main() {
-  //   const list = new LinkedList();
-  //   list.insertFirst('1');
-  //   list.insertLast('2');
-  //   list.insertLast('3');
-  //   list.insertLast('4');
-  //   list.insertLast('5');
-  //   list.insertLast('6');
-
-  // let before = findBefore(list, 3);
-  // console.log(before);
-  // updateHead(list);
-  // display(list);
-  // }
-
-  // function findBefore(list, num) {
-  //   let before = list.head;
-
-  //   for (let i = 1; i < num; i++) {
-  //     before = before.next;
-  //   }
-  //   return before;
-  // }
-
-  // function updateHead(list) {
-  //   list.head = list.head.next;
-  // }
-
-  //Make a first and last pointer
-  //
-  //node first = head
-  //node last = head
-  //
-  //make a loop to point to the node you want to insert after
-  //
-  //change head pointer to point to second node in the list
-  //
-  //set the next of first as null (first is captured)
-  //
-  //
-  //SO...
-  //
-  //might have something like first = head
-  //
-  //noide last (aka the node before where we need to insert)== end of loop
-  //
-  //set head to 2.
-  //
-  //set first.next to last.next
-  //set last.next to first
-  // main();
-
-  // function moveHead(list, num) {
-  //   let node = list.head;
-  //   let count = 0;
-  //   let tempNode = new _Node();
-  //   let newHead = list.head.next;
-
-  //   while (count <= num) {
-  //     console.log('current node');
-  //     console.log(node);
-  //     node = node.next;
-  //     console.log('next node');
-  //     console.log(node);
-  //     count++;
-  //   }
-  //   list.head = newHead;
-  //   list.head.next = tempNode; //connected to temp node
-  //   tempNode.next = node.next; //tempnode next = 4
-  //   node.next = this.head; //3 ===head
-  //   // list.head.next = tempNode.next; //old head next ==4
-  // }
-
-  // function display(list) {
-  //   let currNode = list.head;
-
-  //   while (currNode !== null) {
-  //     console.log(currNode.value);
-  //     currNode = currNode.next;
-  //   }
-  // }
-
-  // function size(list) {
-  //   let currNode = list.head;
-  //   let size = 0;
-  //   while (currNode !== null) {
-  //     currNode = currNode.next;
-  //     size++;
-  //   }
-
-  //   return size;
-  // }
-
-  // function isEmpty(list) {
-  //   if (list.head === null) return 'is empty';
-  //   return 'is not empty';
-  // }
-
-  // function findPrevious(list, item) {
-  //   let currNode = list.head;
-  //   while (currNode.next.value !== item) {
-  //     currNode = currNode.next;
-  //   }
-  //   if (!currNode) return null;
-  //   return JSON.stringify(currNode);
-  // }
-
-  // function findLast(list) {
-  //   let currNode = list.head;
-  //   if (!currNode) return null;
-  //   while (currNode.next !== null) {
-  //     currNode = currNode.next;
-  //   }
-  //   return JSON.stringify(currNode);
 }
 
 module.exports = LinkedList;

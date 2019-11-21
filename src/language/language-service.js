@@ -57,7 +57,7 @@ const LanguageService = {
     return db
       .from('word')
       .select('*')
-      .where('word.id', language_id);
+      .where('word.language_id', language_id);
   },
 
   getHeadNode(db, head) {
@@ -83,27 +83,6 @@ const LanguageService = {
       .andWhere('word.id', word_id)
       .update({
         next: nextNode !== null ? nextNode : null,
-      });
-  },
-
-  updateIncorrect(
-    db,
-    word_id,
-    language_id,
-    user_id,
-    newCount,
-    memVal,
-    newNext
-  ) {
-    return db('word')
-      .join('language', 'language.id', '=', 'word.language_id')
-      .where('word.language_id', language_id)
-      .andWhere('language.user_id', user_id)
-      .andWhere('word.id', word_id)
-      .update({
-        incorrect_count: newCount,
-        memory_value: memVal,
-        next: `${newNext}`,
       });
   },
 

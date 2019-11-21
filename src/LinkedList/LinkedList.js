@@ -32,8 +32,9 @@ class LinkedList {
 
   insertAt(item, pos) {
     let currNode = this.head;
-
-    for (let i = 0; i <= pos; i++) {
+   //This puts the incorrectly answered node right behind the new head, provided the mvalue is 1
+    for (let i = 1; i < pos; i++) {
+      // console.log('THE CURRNODE IS', currNode)
       if (currNode.next === null) {
         break;
       }

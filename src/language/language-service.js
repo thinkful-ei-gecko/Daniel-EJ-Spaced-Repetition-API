@@ -60,6 +60,13 @@ const LanguageService = {
       .where('word.language_id', language_id);
   },
 
+  getWord(db, id) {
+    return db
+      .from('word')
+      .select('*')
+      .where('word.id', id);
+  },
+
   getHeadNode(db, head) {
     return db
       .select('*')
@@ -76,6 +83,9 @@ const LanguageService = {
       .first();
   },
 
+  //For this, the word_id is the INNER id of the current node.
+  //The nextNode is the INNER VALUE of the current.next node.
+  //Expect to see a reflection of the state of the linked list in the DB following execution.
   updateNext(db, language_id, word_id, nextNode) {
     return db('word')
       .join('language', 'language.id', '=', 'word.language_id')
@@ -86,6 +96,8 @@ const LanguageService = {
       });
   },
 
+  //This function uses the inner id for current head in the linked list
+  //It uses this value to point the 'head' in the language table to the correct head.
   updateHead(db, language_id, newHead) {
     return db('language')
       .where('language.id', language_id)
@@ -94,18 +106,19 @@ const LanguageService = {
       });
   },
 
+  //This function updates the values for the word the user just answered.
+  //it uses the INNER id of the moved(old head) to identify the correct row to update.
+  //It then uses the variables set in the if  statement in language router to update the appropriate fields.
+
   updateWord(db, language_id, word_id, memVal, wordCorrect, wordIncorrect) {
-    return (
-      db('word')
-        // .join('language', 'language.id', '=', 'word.language_id')
-        // .where('word.language_id', language_id)
-        .where('word.id', word_id)
-        .update({
-          memory_value: memVal,
-          incorrect_count: wordIncorrect,
-          correct_count: wordCorrect,
-        })
-    );
+    return db('word')
+      .where('word.language_id', language_id)
+      .where('word.id', word_id)
+      .update({
+        memory_value: memVal,
+        incorrect_count: wordIncorrect,
+        correct_count: wordCorrect,
+      });
   },
 
   updateTotalScore(db, user_id, newTotal) {

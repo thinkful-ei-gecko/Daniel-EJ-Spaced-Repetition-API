@@ -62,7 +62,7 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
 
   //validate body
   if (!guess) {
-    res.status(400).json({ error: `Missing 'guess' in request body` });
+    return res.status(400).json({ error: `Missing 'guess' in request body` });
   }
 
   //Make a linked list to use in this endpoint
@@ -78,13 +78,15 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
   const list = new LinkedList();
   list.insertFirst(head);
   let node = list.head;
-  while (node.value.next !== null) {
+  console.log('THIS IS THE NODE', node)
+  while (node.value && node.value.next !== null) {
     let [word] = await LanguageService.getWord(
       req.app.get('db'),
       node.value.next
     );
     list.insertLast(word);
     node = node.next;
+    console.log("This is the new node", node)
   }
 
 

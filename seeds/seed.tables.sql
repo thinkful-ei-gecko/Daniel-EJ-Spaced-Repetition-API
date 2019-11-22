@@ -29,7 +29,7 @@ VALUES
   (6, 1, 'die Stunde', 'hour', 7),
   (7, 1, 'Guten Morgen', 'Good morning', 8),
   (8, 1, 'Taschenrechner', 'Calculator', 9),
-  (9, 1, 'das Frühstück', 'breakfast', 10),
+  (9, 1, 'das Fenster', 'window', 10),
   (10, 1, 'das Abendessen', 'dinner', null);
 
 UPDATE "language" SET head = 1 WHERE id = 1;

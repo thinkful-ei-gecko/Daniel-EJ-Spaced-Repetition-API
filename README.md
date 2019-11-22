@@ -1,6 +1,6 @@
 # Spaced repetition API!
 
-##Herzlich Willkommen! 
+## Herzlich Willkommen! 
 
 Welcome to the Clever German API, the back-end for a spaced-repetition app that helps you learn Deutsch... schnell!
 
@@ -9,7 +9,7 @@ Here you will find everything you need to get up and running, including:
 2. A seed file of 10 German words 
 3. Integration tests to assist in setting up your project
 
-##Organization
+## Organization
 
 The endpoints are organized by their function, and are: 
 

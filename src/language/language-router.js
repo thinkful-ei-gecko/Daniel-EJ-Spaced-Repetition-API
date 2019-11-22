@@ -74,7 +74,7 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
 
   //The next values will but updated after the guess, so list must be ordered by next
   //in subsequent calls to the endpoint.
-
+  
   const list = new LinkedList();
   list.insertFirst(head);
   let node = list.head;
@@ -86,6 +86,7 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
     list.insertLast(word);
     node = node.next;
   }
+
 
   // Check answer against the list head
   try {
@@ -102,7 +103,7 @@ languageRouter.post('/guess', jsonBodyParser, async (req, res, next) => {
     );
 
     //If guess is correct
-    if (guess !== llHead.translation) {
+    if (guess !== llHead.translation.toLowerCase()) {
       memVal = 1; 
       isCorrect = false; 
       wordCountIncorrect = llHead.incorrect_count + 1;
